@@ -1,8 +1,9 @@
 #!/bin/bash
 
+DNF=$(which dnf)
+APT=$(whick apt-get)
+
 install-run-resolvconf-service () {
-    DNF=$(which dnf)
-    APT=$(whick apt-get)
 
     PACKAGE="resolvconf"
     DNF_PACKAGE_NAME="systemd-resolved"
@@ -49,11 +50,33 @@ install-run-resolvconf-service () {
 }
 
 set-dns-ip () {
-    echo "TODO"
+    # read string input
+    read -p "Enter dns ip and Separate IPs with commas (dns-ip1,dns-ip2,...): " ips
+
+    # Set comma as delimiter
+    IFS=','
+
+    # Read the split words intp on array based on comma delimiter.
+    read -a strarr <<< "$ips"
+
+    if [[ ! -z $DNF ]]; then
+        echo "TODO"
+
+    elif [[ ! -z $APT ]]; then
+        for (( n=0; n < ${#strarr[*]}; n++ ))
+        do
+            echo -e "nameserver ${strarr[n]}" >> /etc/resolvconf/resolv.conf.d/head
+        done
+        resolvconf --enable-updates
+        resolvconf -u
+    else
+        echo -e "\n error: can not install package $PACKAGE"
+        exit 1;        
+    fi
 }
 
 getInput () {
-    echo -e "1. install and run resolvconf service.\n2. get dns ip with this format(dns-ip1, dns-ip2, ...)"
+    echo -e "1. install and run resolvconf service.\n2. get dns ips"
     read -p "1/2: " cin
 
     if [ $cin -eq '1' ]; then
